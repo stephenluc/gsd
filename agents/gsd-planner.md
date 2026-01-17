@@ -1171,6 +1171,115 @@ Present breakdown with wave structure.
 Wait for confirmation in interactive mode. Auto-approve in yolo mode.
 </step>
 
+<step name="create_phase_branch">
+## Branch Creation (Graphite/Git Mode)
+
+After plan breakdown is confirmed, create a branch for this phase if version control is configured.
+
+### 1. Check Version Control Config
+
+Read `.planning/config.json` versionControl section:
+
+```bash
+VC_TYPE=$(cat .planning/config.json 2>/dev/null | grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+VC_USERNAME=$(cat .planning/config.json 2>/dev/null | grep -o '"username"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+```
+
+If `VC_TYPE` is "graphite", proceed with branch creation flow.
+If `VC_TYPE` is "git" or unset, skip branch creation (user handles manually).
+
+### 2. Check for Uncommitted Changes
+
+Before creating a branch, verify clean working tree:
+
+```bash
+git status --porcelain
+```
+
+If output is non-empty, **BLOCK** with message:
+> Cannot create branch with uncommitted changes. Please commit or stash your changes first.
+
+Do NOT proceed until working tree is clean.
+
+### 3. Prompt for Feature Name
+
+**Default name derivation:**
+- Take phase slug from current phase (e.g., `03-basic-branch-management`)
+- Strip leading number and hyphen: `basic-branch-management`
+- This becomes the default feature name
+
+**Prompt format:**
+```
+Feature name for branch (Enter to accept default):
+Default: basic-branch-management
+Full branch: {username}/basic-branch-management
+
+Enter feature name: _
+```
+
+**Validation rules:**
+- Allowed characters: lowercase a-z, digits 0-9, hyphens (-)
+- No spaces, underscores, uppercase, or special characters
+- Convert invalid input: replace disallowed chars with hyphens, lowercase all
+- Show corrected name if input was modified
+
+**If user presses Enter:** Use default name.
+**If user types name:** Validate and use their input.
+
+### 4. Check for Existing Branch
+
+Check if branch already exists:
+
+```bash
+git show-ref --verify --quiet "refs/heads/${VC_USERNAME}/${FEATURE_NAME}" && echo "exists" || echo "new"
+```
+
+**If branch exists:**
+> Branch '{username}/{feature-name}' already exists.
+> [U]se existing branch or [R]ename?
+
+- **U/use:** Switch to existing branch with `git checkout {branch}`
+- **R/rename:** Return to step 3, prompt for new name
+
+### 5. Create Branch
+
+Reference `@get-shit-done/references/graphite-operations.md` for backend detection and command selection.
+
+**Follow the backend detection protocol:**
+1. Check config type (already done in step 1)
+2. If Graphite mode, detect MCP vs CLI backend
+3. Execute create operation per the operation mappings
+
+**MCP backend:**
+```
+mcp__graphite__create_branch
+  name: "{username}/{feature-name}"
+  commit_message: "chore: start phase {phase-number} - {phase-name}"
+```
+
+**CLI backend:**
+```bash
+gt create "{username}/{feature-name}" -m "chore: start phase {phase-number} - {phase-name}"
+```
+
+**Git fallback (if Graphite unavailable):**
+```bash
+git checkout -b "{username}/{feature-name}"
+```
+Warn once: "Graphite unavailable, using git. Branch won't be in stack."
+
+### 6. Confirm Success
+
+On successful branch creation, show brief confirmation:
+```
+Created branch {username}/{feature-name}
+```
+
+Do NOT push to remote. User handles that asynchronously.
+
+**Then continue to write_phase_prompt step.**
+</step>
+
 <step name="write_phase_prompt">
 Use template structure for each PLAN.md.
 
