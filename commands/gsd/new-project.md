@@ -237,6 +237,88 @@ EOF
 
 ## Phase 5: Workflow Preferences
 
+**MANDATORY: Detect Graphite CLI availability first:**
+
+```bash
+# Detect Graphite CLI availability
+GRAPHITE_AVAILABLE="no"
+GRAPHITE_AUTHED="no"
+
+if gt --version >/dev/null 2>&1; then
+    GRAPHITE_AVAILABLE="yes"
+    # Check if user is authenticated
+    if gt auth status 2>&1 | grep -q "logged in"; then
+        GRAPHITE_AUTHED="yes"
+    fi
+fi
+```
+
+**Get suggested username from git config:**
+
+```bash
+SUGGESTED_USERNAME=$(git config user.name 2>/dev/null | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-')
+```
+
+**Version control prompts (conditional):**
+
+**If Graphite is available AND authenticated (`GRAPHITE_AVAILABLE="yes"` AND `GRAPHITE_AUTHED="yes"`):**
+
+Use AskUserQuestion for version control choice:
+
+```
+{
+  header: "Version Control",
+  question: "How do you want to manage branches?",
+  multiSelect: false,
+  options: [
+    { label: "Graphite", description: "Stacked PRs per phase - requires gt CLI and Graphite account" },
+    { label: "Git", description: "Standard git workflow" }
+  ]
+}
+```
+
+Store selection as `VERSION_CONTROL_TYPE` ("graphite" or "git").
+
+**If Graphite is NOT available or NOT authenticated:**
+
+Silently default to Git mode (do not mention Graphite):
+```
+VERSION_CONTROL_TYPE="git"
+```
+
+**Username prompt (always shown regardless of VC type):**
+
+If `SUGGESTED_USERNAME` is non-empty, ask inline (freeform):
+
+"Username for branch names: **[suggested_username]**"
+"Press enter to accept, or type a different username:"
+
+If `SUGGESTED_USERNAME` is empty, ask inline:
+
+"Username for branch names (e.g., 'stephenluc'):"
+
+**Username validation:**
+
+After user input:
+
+```bash
+USERNAME="[user input or accepted default]"
+if [ -z "$USERNAME" ]; then
+    echo "Note: No username set. Branch names will not have a username prefix."
+    # Continue anyway - username is optional but recommended
+elif ! git check-ref-format --branch "${USERNAME}/test" >/dev/null 2>&1; then
+    echo "Invalid username: contains characters not allowed in branch names"
+    echo "Allowed: letters, numbers, hyphens. Must start with a letter or number."
+    # Re-prompt user
+fi
+```
+
+Store validated username as `GSD_USERNAME`.
+
+---
+
+**Workflow preferences:**
+
 Ask all workflow preferences in a single AskUserQuestion call (3 questions):
 
 ```
@@ -272,7 +354,25 @@ questions: [
 ]
 ```
 
-Create `.planning/config.json` with chosen mode, depth, and parallelization.
+Create `.planning/config.json` with chosen mode, depth, parallelization, and versionControl:
+
+```json
+{
+  "mode": "[chosen mode]",
+  "depth": "[chosen depth]",
+  "parallelization": {
+    "enabled": [true/false based on selection],
+    ...
+  },
+  "versionControl": {
+    "type": "[VERSION_CONTROL_TYPE - graphite or git]",
+    "username": "[GSD_USERNAME - validated username or empty string]",
+    "gitignorePlanning": true
+  },
+  "gates": { ... },
+  "safety": { ... }
+}
+```
 
 **Commit config.json:**
 
@@ -284,6 +384,7 @@ chore: add project config
 Mode: [chosen mode]
 Depth: [chosen depth]
 Parallelization: [enabled/disabled]
+Version Control: [graphite/git]
 EOF
 )"
 ```
