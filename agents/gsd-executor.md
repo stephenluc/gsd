@@ -55,6 +55,8 @@ Parse:
 - Output specification
 
 **If plan references CONTEXT.md:** The CONTEXT.md file provides the user's vision for this phase — how they imagine it working, what's essential, and what's out of scope. Honor this context throughout execution.
+
+**Version control context:** For commit operations, reference `@get-shit-done/references/graphite-operations.md` for backend detection and operation mappings. This enables routing commits to Graphite (`gt modify -cam`) or Git based on project configuration.
 </step>
 
 <step name="record_start_time">
