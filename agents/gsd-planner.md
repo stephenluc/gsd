@@ -1188,6 +1188,60 @@ VC_USERNAME=$(cat .planning/config.json 2>/dev/null | grep -o '"username"[[:spac
 If `VC_TYPE` is "graphite", proceed with branch creation flow.
 If `VC_TYPE` is "git" or unset, skip branch creation (user handles manually).
 
+### 1.5. Parse Phase Dependencies
+
+Parse the current phase's dependencies from ROADMAP.md:
+
+```bash
+# Extract "Depends on:" line for current phase
+DEPENDS_LINE=$(grep -A30 "### Phase ${PHASE_NUM}:" .planning/ROADMAP.md | grep "^\*\*Depends on:\*\*" | head -1)
+
+# Extract phase numbers from dependency line
+# "**Depends on:** Phase 3, Phase 5" -> "3 5"
+# "**Depends on:** None" -> ""
+DEPS=$(echo "$DEPENDS_LINE" | sed 's/\*\*Depends on:\*\* //' | grep -oE 'Phase [0-9]+' | grep -oE '[0-9]+' | tr '\n' ' ' | xargs)
+```
+
+**Handle malformed dependencies:**
+If the `**Depends on:**` line is missing or malformed:
+- Warn: "Could not parse dependencies for Phase ${PHASE_NUM}. Treating as independent."
+- Continue with trunk as parent (don't fail)
+
+**Validate referenced phases exist:**
+For each phase number in DEPS, verify it exists in ROADMAP.md:
+```bash
+for DEP_NUM in $DEPS; do
+  grep -q "### Phase ${DEP_NUM}:" .planning/ROADMAP.md || echo "Warning: Phase ${DEP_NUM} not found in roadmap"
+done
+```
+
+### 1.6. Determine Parent Branch
+
+**If DEPS is empty (independent phase):**
+- Parent is trunk (use `gt trunk` to navigate)
+- Set `PARENT_DESC="trunk (main)"`
+
+**If DEPS has values (dependent phase):**
+- Select highest-numbered dependency:
+  ```bash
+  PARENT_PHASE=$(echo "$DEPS" | tr ' ' '\n' | sort -rn | head -1)
+  ```
+- Look up branch name from STATE.md Branch Mappings section:
+  ```bash
+  PARENT_BRANCH=$(grep "^| ${PARENT_PHASE} |" .planning/STATE.md | awk -F'|' '{print $3}' | xargs)
+  ```
+- If PARENT_BRANCH is empty (parent phase not yet branched):
+  - Warn: "Parent phase ${PARENT_PHASE} has no branch yet. Creating placeholder branch first."
+  - Recursively resolve parent's parent and create placeholder
+- Set `PARENT_DESC="${PARENT_BRANCH} (Phase ${PARENT_PHASE})"`
+
+**Multi-dependency visibility:**
+When DEPS has multiple values, show all:
+```
+Depends on: Phase 3, Phase 5
+Stacking on Phase 5 branch (highest-numbered dependency)
+```
+
 ### 2. Check for Uncommitted Changes
 
 Before creating a branch, verify clean working tree:
