@@ -46,7 +46,15 @@ If missing both ROADMAP.md and PROJECT.md: suggest `/gsd:new-project`.
 - Read `.planning/STATE.md` for living memory (position, decisions, issues)
 - Read `.planning/ROADMAP.md` for phase structure and objectives
 - Read `.planning/PROJECT.md` for current state (What This Is, Core Value, Requirements)
-  </step>
+
+**Detect version control mode:**
+
+```bash
+VC_TYPE=$(cat .planning/config.json 2>/dev/null | grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+```
+
+Track `VC_TYPE` for conditional display later (graphite vs git).
+</step>
 
 <step name="recent">
 **Gather recent work context:**
@@ -65,10 +73,155 @@ If missing both ROADMAP.md and PROJECT.md: suggest `/gsd:new-project`.
 - Check for CONTEXT.md: For phases without PLAN.md files, check if `{phase}-CONTEXT.md` exists in phase directory
 - Count pending todos: `ls .planning/todos/pending/*.md 2>/dev/null | wc -l`
 - Check for active debug sessions: `ls .planning/debug/*.md 2>/dev/null | grep -v resolved | wc -l`
-  </step>
+</step>
+
+<step name="display_stack">
+**Build stack visualization (Graphite mode only):**
+
+Only execute this step if `VC_TYPE` is "graphite". Skip for "git" or unset.
+
+**1. Build stack tree data:**
+
+a) Parse all phases from ROADMAP.md:
+```bash
+# Extract phase numbers, names, dependencies, and status
+grep -E "^### Phase [0-9]+:" .planning/ROADMAP.md
+grep -E "^\*\*Status:\*\*" .planning/ROADMAP.md
+grep -E "^\*\*Depends on:\*\*" .planning/ROADMAP.md
+```
+
+For each phase, extract:
+- Phase number (N)
+- Phase name
+- Dependencies (list of phase numbers, or empty for independent)
+- Status (Complete/Pending)
+
+b) Read branch mappings from STATE.md:
+```bash
+# Extract phase-to-branch mappings from "## Branch Mappings" section
+grep -E "^\| [0-9]+ \|" .planning/STATE.md
+```
+
+c) Get current context:
+```bash
+# Current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Trunk name
+TRUNK=$(gt trunk 2>/dev/null || echo "main")
+```
+
+**2. Build tree structure:**
+
+Using the dependency graph:
+- Root = trunk branch (main/master)
+- Children of trunk = phases with "Depends on: None"
+- Children of phase N = phases where highest dependency is N
+
+**3. Render ASCII tree:**
+
+Use Unicode box-drawing characters:
+
+```
+main
+├── P1: stephen/config-foundation (Configuration Foundation) ✓
+│   └── P2: stephen/mcp-layer (MCP Abstraction Layer) ✓
+│       └── P3: stephen/branch-mgmt (Basic Branch Management) ✓
+│           ├── P4: stephen/stacking (Intelligent Branch Stacking) ✓
+│           │   └── P5: stephen/stack-viz (Stack Visualization) ▶ ◀ current
+│           └── P6: (planned) Basic Commit Operations ○
+```
+
+**Tree characters:**
+- `├── ` branch with siblings below
+- `└── ` last branch at this level
+- `│   ` vertical connector for nested items
+- `    ` (4 spaces) indent without connector
+
+**Status indicators:**
+- `✓` for Complete phases
+- `▶` for In Progress (has branch but not complete)
+- `○` for Pending (no branch yet)
+
+**Current branch highlighting:**
+- Add ` ◀ current` marker at end of line for the branch matching `git branch --show-current`
+
+**Format each phase line as:**
+`P{N}: {branch-name-or-planned} ({Phase Name}) {status}{current-marker}`
+
+Where `{branch-name-or-planned}` is:
+- The actual branch name from STATE.md Branch Mappings if exists
+- `(planned)` if no branch mapping exists yet
+
+**4. Handle collapsed view for large stacks (>8 phases):**
+
+If total phases > 8, show a windowed view:
+- Show trunk
+- Show 2 phases before current
+- Show current phase
+- Show 2 phases after current
+- Show ellipsis markers for collapsed sections
+
+```
+main
+├── ... (3 earlier phases)
+├── P4: stephen/stacking (Intelligent Branch Stacking) ✓
+│   └── P5: stephen/stack-viz (Stack Visualization) ▶ ◀ current
+└── ... (3 more phases)
+
+[8 total branches - expand with --full]
+```
+
+**5. Store rendered tree for report step.**
+</step>
 
 <step name="report">
 **Present rich status report:**
+
+**Conditional display based on VC_TYPE:**
+
+**If VC_TYPE is "graphite":** Show stack visualization INSTEAD OF phase table.
+
+```
+# [Project Name]
+
+**Progress:** [████████░░] 8/10 plans complete
+
+## Recent Work
+- [Phase X, Plan Y]: [what was accomplished - 1 line]
+- [Phase X, Plan Z]: [what was accomplished - 1 line]
+
+## Current Stack
+
+main
+├── P1: stephen/config-foundation (Configuration Foundation) ✓
+│   └── P2: stephen/mcp-layer (MCP Abstraction Layer) ✓
+│       └── P3: stephen/branch-mgmt (Basic Branch Management) ✓
+│           ├── P4: stephen/stacking (Intelligent Branch Stacking) ✓
+│           │   └── P5: stephen/stack-viz (Stack Visualization) ▶ ◀ current
+│           └── P6: (planned) Basic Commit Operations ○
+│               └── P7: (planned) Advanced Commit Operations ○
+│                   └── P8: (planned) Safety Layer ○
+
+## Key Decisions Made
+- [decision 1 from STATE.md]
+- [decision 2]
+
+## Blockers/Concerns
+- [any blockers or concerns from STATE.md]
+
+## Pending Todos
+- [count] pending — /gsd:check-todos to review
+
+## Active Debug Sessions
+- [count] active — /gsd:debug to continue
+(Only show this section if count > 0)
+
+## What's Next
+[Next phase/plan objective from ROADMAP]
+```
+
+**If VC_TYPE is "git" or unset:** Show standard phase table (existing behavior).
 
 ```
 # [Project Name]
@@ -101,6 +254,8 @@ CONTEXT: [✓ if CONTEXT.md exists | - if not]
 ## What's Next
 [Next phase/plan objective from ROADMAP]
 ```
+
+**Key difference:** In Graphite mode, "## Current Stack" with ASCII tree replaces "## Current Position" with text.
 
 </step>
 
