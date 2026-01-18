@@ -13,13 +13,13 @@ The git log should read like a changelog of what shipped, not a diary of plannin
 
 | Event                   | Commit? | Why                                              |
 | ----------------------- | ------- | ------------------------------------------------ |
-| BRIEF + ROADMAP created | YES     | Project initialization                           |
-| PLAN.md created         | NO      | Intermediate - commit with plan completion       |
-| RESEARCH.md created     | NO      | Intermediate                                     |
-| DISCOVERY.md created    | NO      | Intermediate                                     |
+| BRIEF + ROADMAP created | NO      | Planning process, not outcome                    |
+| PLAN.md created         | NO      | Planning process                                 |
+| RESEARCH.md created     | NO      | Planning process                                 |
+| DISCOVERY.md created    | NO      | Planning process                                 |
 | **Task completed**      | YES     | Atomic unit of work (1 commit per task)         |
-| **Plan completed**      | YES     | Metadata commit (SUMMARY + STATE + ROADMAP)     |
-| Handoff created         | YES     | WIP state preserved                              |
+| **Plan completed**      | NO      | Planning process (code already committed)        |
+| Handoff created         | NO      | Planning process                                 |
 
 </commit_points>
 
@@ -34,28 +34,6 @@ If NO_GIT: Run `git init` silently. GSD projects always get their own repo.
 
 <commit_formats>
 
-<format name="initialization">
-## Project Initialization (brief + roadmap together)
-
-```
-docs: initialize [project-name] ([N] phases)
-
-[One-liner from PROJECT.md]
-
-Phases:
-1. [phase-name]: [goal]
-2. [phase-name]: [goal]
-3. [phase-name]: [goal]
-```
-
-What to commit:
-
-```bash
-git add .planning/
-git commit
-```
-
-</format>
 
 <format name="task-completion">
 ## Task Completion (During Plan Execution)
@@ -111,54 +89,7 @@ git commit -m "feat(07-02): implement JWT generation
 
 </format>
 
-<format name="plan-completion">
-## Plan Completion (After All Tasks Done)
 
-After all tasks committed, one final metadata commit captures plan completion.
-
-```
-docs({phase}-{plan}): complete [plan-name] plan
-
-Tasks completed: [N]/[N]
-- [Task 1 name]
-- [Task 2 name]
-- [Task 3 name]
-
-SUMMARY: .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-```
-
-What to commit:
-
-```bash
-git add .planning/phases/XX-name/{phase}-{plan}-PLAN.md
-git add .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-git add .planning/STATE.md
-git add .planning/ROADMAP.md
-git commit
-```
-
-**Note:** Code files NOT included - already committed per-task.
-
-</format>
-
-<format name="handoff">
-## Handoff (WIP)
-
-```
-wip: [phase-name] paused at task [X]/[Y]
-
-Current: [task name]
-[If blocked:] Blocked: [reason]
-```
-
-What to commit:
-
-```bash
-git add .planning/
-git commit
-```
-
-</format>
 </commit_formats>
 
 <example_log>
@@ -172,57 +103,49 @@ a7f2d1 feat(checkout): Stripe payments with webhook verification
 2f4a8d docs: initialize ecommerce-app (5 phases)
 ```
 
-**New approach (per-task commits):**
+**New approach (per-task commits, code only):**
 ```
 # Phase 04 - Checkout
-1a2b3c docs(04-01): complete checkout flow plan
 4d5e6f feat(04-01): add webhook signature verification
 7g8h9i feat(04-01): implement payment session creation
 0j1k2l feat(04-01): create checkout page component
 
 # Phase 03 - Products
-3m4n5o docs(03-02): complete product listing plan
 6p7q8r feat(03-02): add pagination controls
 9s0t1u feat(03-02): implement search and filters
 2v3w4x feat(03-01): create product catalog schema
 
 # Phase 02 - Auth
-5y6z7a docs(02-02): complete token refresh plan
 8b9c0d feat(02-02): implement refresh token rotation
 1e2f3g test(02-02): add failing test for token refresh
-4h5i6j docs(02-01): complete JWT setup plan
 7k8l9m feat(02-01): add JWT generation and validation
 0n1o2p chore(02-01): install jose library
 
 # Phase 01 - Foundation
-3q4r5s docs(01-01): complete scaffold plan
 6t7u8v feat(01-01): configure Tailwind and globals
 9w0x1y feat(01-01): set up Prisma with database
 2z3a4b feat(01-01): create Next.js 15 project
-
-# Initialization
-5c6d7e docs: initialize ecommerce-app (5 phases)
 ```
 
-Each plan produces 2-4 commits (tasks + metadata). Clear, granular, bisectable.
+Each task gets exactly one commit. Clean, granular, bisectable. No planning artifacts in git history.
 
 </example_log>
 
 <anti_patterns>
 
-**Still don't commit (intermediate artifacts):**
-- PLAN.md creation (commit with plan completion)
-- RESEARCH.md (intermediate)
-- DISCOVERY.md (intermediate)
-- Minor planning tweaks
-- "Fixed typo in roadmap"
+**Never commit .planning/ files:**
+- PROJECT.md, ROADMAP.md, REQUIREMENTS.md
+- PLAN.md, RESEARCH.md, DISCOVERY.md
+- SUMMARY.md, STATE.md
+- VERIFICATION.md, MILESTONE-AUDIT.md
+- codebase/*.md
+- todos/*
+- .continue-here.md
 
-**Do commit (outcomes):**
-- Each task completion (feat/fix/test/refactor)
-- Plan completion metadata (docs)
-- Project initialization (docs)
+**Only commit working code:**
+- Each task completion (feat/fix/test/refactor/chore)
 
-**Key principle:** Commit working code and shipped outcomes, not planning process.
+**Key principle:** Commit working code only. Planning artifacts stay local, never in git history.
 
 </anti_patterns>
 

@@ -390,24 +390,6 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 ```
 </step>
 
-<step name="git_commit">
-Commit phase context:
-
-```bash
-git add "${PHASE_DIR}/${PADDED_PHASE}-CONTEXT.md"
-git commit -m "$(cat <<'EOF'
-docs(${PADDED_PHASE}): capture phase context
-
-Phase ${PADDED_PHASE}: ${PHASE_NAME}
-- Implementation decisions documented
-- Phase boundary established
-EOF
-)"
-```
-
-Confirm: "Committed: docs(${PADDED_PHASE}): capture phase context"
-</step>
-
 </process>
 
 <success_criteria>

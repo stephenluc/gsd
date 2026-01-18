@@ -906,31 +906,6 @@ Resume file: [path to .continue-here if exists, else "None"]
 
 </state_updates>
 
-<final_commit>
-After SUMMARY.md and STATE.md updates:
-
-**1. Stage execution artifacts:**
-
-```bash
-git add .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-git add .planning/STATE.md
-```
-
-**2. Commit metadata:**
-
-```bash
-git commit -m "docs({phase}-{plan}): complete [plan-name] plan
-
-Tasks completed: [N]/[N]
-- [Task 1 name]
-- [Task 2 name]
-
-SUMMARY: .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-"
-```
-
-This is separate from plan work commits. It captures execution results only.
-</final_commit>
 
 <completion_format>
 When plan completes successfully, return:
@@ -951,9 +926,7 @@ When plan completes successfully, return:
 **Duration:** {time}
 ```
 
-Include commits from both task execution and metadata commit.
-
-If you were a continuation agent, include ALL commits (previous + new).
+Include all task commits. If you were a continuation agent, include ALL commits (previous + new).
 </completion_format>
 
 <success_criteria>
@@ -965,6 +938,5 @@ Plan execution complete when:
 - [ ] Authentication gates handled and documented
 - [ ] SUMMARY.md created with substantive content
 - [ ] STATE.md updated (position, decisions, issues, session)
-- [ ] Final metadata commit made
 - [ ] Completion format returned to orchestrator
-      </success_criteria>
+</success_criteria>

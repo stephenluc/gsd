@@ -123,23 +123,6 @@ If `.planning/STATE.md` exists:
 2. Update "### Pending Todos" under "## Accumulated Context"
 </step>
 
-<step name="git_commit">
-Commit the todo and any updated state:
-
-```bash
-git add .planning/todos/pending/[filename]
-[ -f .planning/STATE.md ] && git add .planning/STATE.md
-git commit -m "$(cat <<'EOF'
-docs: capture todo - [title]
-
-Area: [area]
-EOF
-)"
-```
-
-Confirm: "Committed: docs: capture todo - [title]"
-</step>
-
 <step name="confirm">
 ```
 Todo saved: .planning/todos/pending/[filename]
@@ -178,5 +161,6 @@ Would you like to:
 - [ ] No duplicates (checked and resolved)
 - [ ] Area consistent with existing todos
 - [ ] STATE.md updated if exists
-- [ ] Todo and state committed to git
+
+Note: `.planning/` files are not committed — they stay local.
 </success_criteria>

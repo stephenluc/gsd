@@ -155,12 +155,6 @@ For each gap in the Gaps section, add artifacts and missing fields:
 ```
 
 Update status in frontmatter to "diagnosed".
-
-Commit the updated UAT.md:
-```bash
-git add ".planning/phases/XX-name/{phase}-UAT.md"
-git commit -m "docs({phase}): add root causes from diagnosis"
-```
 </step>
 
 <step name="report_results">

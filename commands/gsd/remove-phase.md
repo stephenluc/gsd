@@ -249,17 +249,6 @@ grep -r "Phase 19" .planning/phases/18-*/ 2>/dev/null
 Update any internal references to reflect new numbering.
 </step>
 
-<step name="commit">
-Stage and commit the removal:
-
-```bash
-git add .planning/
-git commit -m "chore: remove phase {target} ({original-phase-name})"
-```
-
-The commit message preserves the historical record of what was removed.
-</step>
-
 <step name="completion">
 Present completion summary:
 
@@ -332,7 +321,8 @@ Phase removal is complete when:
 - [ ] ROADMAP.md updated (section removed, all references renumbered)
 - [ ] STATE.md updated (phase count, progress percentage)
 - [ ] Dependency references updated in subsequent phases
-- [ ] Changes committed with descriptive message
 - [ ] No gaps in phase numbering
 - [ ] User informed of changes
+
+Note: `.planning/` files are not committed — they stay local.
 </success_criteria>

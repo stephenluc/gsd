@@ -616,50 +616,6 @@ git push origin v[X.Y]
 
 </step>
 
-<step name="git_commit_milestone">
-
-Commit milestone completion including archive files and deletions.
-
-```bash
-# Stage archive files (new)
-git add .planning/milestones/v[X.Y]-ROADMAP.md
-git add .planning/milestones/v[X.Y]-REQUIREMENTS.md
-git add .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md 2>/dev/null || true
-
-# Stage updated files
-git add .planning/MILESTONES.md
-git add .planning/PROJECT.md
-git add .planning/STATE.md
-
-# Stage deletions
-git add -u .planning/
-
-# Commit with descriptive message
-git commit -m "$(cat <<'EOF'
-chore: complete v[X.Y] milestone
-
-Archived:
-- milestones/v[X.Y]-ROADMAP.md
-- milestones/v[X.Y]-REQUIREMENTS.md
-- milestones/v[X.Y]-MILESTONE-AUDIT.md (if audit was run)
-
-Deleted (fresh for next milestone):
-- ROADMAP.md
-- REQUIREMENTS.md
-
-Updated:
-- MILESTONES.md (new entry)
-- PROJECT.md (requirements → Validated)
-- STATE.md (reset for next milestone)
-
-Tagged: v[X.Y]
-EOF
-)"
-```
-
-Confirm: "Committed: chore: complete v[X.Y] milestone"
-
-</step>
 
 <step name="offer_next">
 

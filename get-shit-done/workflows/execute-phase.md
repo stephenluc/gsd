@@ -450,18 +450,9 @@ User stays in control at each decision point.
 <step name="update_roadmap">
 Update ROADMAP.md to reflect phase completion:
 
-```bash
-# Mark phase complete
-# Update completion date
-# Update status
-```
-
-Commit phase completion (roadmap, state, verification):
-```bash
-git add .planning/ROADMAP.md .planning/STATE.md .planning/phases/{phase_dir}/*-VERIFICATION.md
-git add .planning/REQUIREMENTS.md  # if updated
-git commit -m "docs(phase-{X}): complete phase execution"
-```
+- Mark phase complete
+- Update completion date
+- Update status
 </step>
 
 <step name="offer_next">

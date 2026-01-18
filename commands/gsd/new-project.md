@@ -222,19 +222,6 @@ Initialize with any decisions made during questioning:
 
 Do not compress. Capture everything gathered.
 
-**Commit PROJECT.md:**
-
-```bash
-mkdir -p .planning
-git add .planning/PROJECT.md
-git commit -m "$(cat <<'EOF'
-docs: initialize project
-
-[One-liner from PROJECT.md What This Is section]
-EOF
-)"
-```
-
 ## Phase 5: Workflow Preferences
 
 **MANDATORY: Detect Graphite CLI availability first:**
@@ -372,21 +359,6 @@ Create `.planning/config.json` with chosen mode, depth, parallelization, and ver
   "gates": { ... },
   "safety": { ... }
 }
-```
-
-**Commit config.json:**
-
-```bash
-git add .planning/config.json
-git commit -m "$(cat <<'EOF'
-chore: add project config
-
-Mode: [chosen mode]
-Depth: [chosen depth]
-Parallelization: [enabled/disabled]
-Version Control: [graphite/git]
-EOF
-)"
 ```
 
 ## Phase 6: Research Decision
@@ -608,7 +580,6 @@ Read these files:
 <output>
 Write to: .planning/research/SUMMARY.md
 Use template: ~/.claude/get-shit-done/templates/research-project/SUMMARY.md
-Commit after writing.
 </output>
 ", subagent_type="gsd-research-synthesizer", description="Synthesize research")
 ```
@@ -760,19 +731,6 @@ Does this capture what you're building? (yes / adjust)
 
 If "adjust": Return to scoping.
 
-**Commit requirements:**
-
-```bash
-git add .planning/REQUIREMENTS.md
-git commit -m "$(cat <<'EOF'
-docs: define v1 requirements
-
-[X] requirements across [N] categories
-[Y] requirements deferred to v2
-EOF
-)"
-```
-
 ## Phase 8: Create Roadmap
 
 Display stage banner:
@@ -865,17 +823,17 @@ Success criteria:
 ---
 ```
 
-**CRITICAL: Ask for approval before committing:**
+**CRITICAL: Ask for approval:**
 
 Use AskUserQuestion:
 - header: "Roadmap"
 - question: "Does this roadmap structure work for you?"
 - options:
-  - "Approve" — Commit and continue
+  - "Approve" — Continue to completion
   - "Adjust phases" — Tell me what to change
   - "Review full file" — Show raw ROADMAP.md
 
-**If "Approve":** Continue to commit.
+**If "Approve":** Continue to completion.
 
 **If "Adjust phases":**
 - Get user's adjustment notes
@@ -897,23 +855,6 @@ Use AskUserQuestion:
 - Loop until user approves
 
 **If "Review full file":** Display raw `cat .planning/ROADMAP.md`, then re-ask.
-
-**Commit roadmap (after approval):**
-
-```bash
-git add .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
-git commit -m "$(cat <<'EOF'
-docs: create roadmap ([N] phases)
-
-Phases:
-1. [phase-name]: [requirements covered]
-2. [phase-name]: [requirements covered]
-...
-
-All v1 requirements mapped to phases.
-EOF
-)"
-```
 
 ## Phase 10: Done
 
@@ -978,12 +919,12 @@ Present completion with next steps:
 - [ ] Git repo initialized
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)
-- [ ] PROJECT.md captures full context → **committed**
-- [ ] config.json has workflow mode, depth, parallelization → **committed**
-- [ ] Research completed (if selected) — 4 parallel agents spawned → **committed**
+- [ ] PROJECT.md captures full context
+- [ ] config.json has workflow mode, depth, parallelization
+- [ ] Research completed (if selected) — 4 parallel agents spawned
 - [ ] Requirements gathered (from research or conversation)
 - [ ] User scoped each category (v1/v2/out of scope)
-- [ ] REQUIREMENTS.md created with REQ-IDs → **committed**
+- [ ] REQUIREMENTS.md created with REQ-IDs
 - [ ] gsd-roadmapper spawned with context
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)
@@ -991,7 +932,5 @@ Present completion with next steps:
 - [ ] STATE.md initialized
 - [ ] REQUIREMENTS.md traceability updated
 - [ ] User knows next step is `/gsd:discuss-phase 1`
-
-**Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.
 
 </success_criteria>

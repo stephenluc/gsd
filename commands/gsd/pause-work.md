@@ -89,13 +89,6 @@ Start with: [specific first action when resuming]
 Be specific enough for a fresh Claude to understand immediately.
 </step>
 
-<step name="commit">
-```bash
-git add .planning/phases/*/.continue-here.md
-git commit -m "wip: [phase-name] paused at task [X]/[Y]"
-```
-</step>
-
 <step name="confirm">
 ```
 ✓ Handoff created: .planning/phases/[XX-name]/.continue-here.md
@@ -105,7 +98,6 @@ Current state:
 - Phase: [XX-name]
 - Task: [X] of [Y]
 - Status: [in_progress/blocked]
-- Committed as WIP
 
 To resume: /gsd:resume-work
 
@@ -117,7 +109,8 @@ To resume: /gsd:resume-work
 <success_criteria>
 - [ ] .continue-here.md created in correct phase directory
 - [ ] All sections filled with specific content
-- [ ] Committed as WIP
 - [ ] User knows location and how to resume
+
+Note: `.planning/` files are not committed — they stay local.
 </success_criteria>
 ```

@@ -156,14 +156,7 @@ Add new phases to current milestone:
 mkdir -p ".planning/phases/{NN}-{name}"
 ```
 
-## 8. Commit Roadmap Update
-
-```bash
-git add .planning/ROADMAP.md
-git commit -m "docs(roadmap): add gap closure phases {N}-{M}"
-```
-
-## 9. Offer Next Steps
+## 8. Offer Next Steps
 
 ```markdown
 ## ✓ Gap Closure Phases Created
@@ -279,6 +272,7 @@ becomes:
 - [ ] User confirmed phase plan
 - [ ] ROADMAP.md updated with new phases
 - [ ] Phase directories created
-- [ ] Changes committed
 - [ ] User knows to run `/gsd:plan-phase` next
+
+Note: `.planning/` files are not committed — they stay local.
 </success_criteria>

@@ -285,12 +285,6 @@ Clear Current Test section:
 [testing complete]
 ```
 
-Commit the UAT file:
-```bash
-git add ".planning/phases/XX-name/{phase}-UAT.md"
-git commit -m "test({phase}): complete UAT - {passed} passed, {issues} issues"
-```
-
 Present summary:
 ```
 ## UAT Complete: Phase {phase}

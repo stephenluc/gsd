@@ -190,18 +190,6 @@ Update Active requirements section with new goals (keep Validated section intact
 
 Update "Last updated" footer.
 
-**Commit PROJECT.md:**
-
-```bash
-git add .planning/PROJECT.md
-git commit -m "$(cat <<'EOF'
-docs: start milestone v[X.Y] [Name]
-
-[One-liner describing milestone focus]
-EOF
-)"
-```
-
 ## Phase 6: Research Decision
 
 Use AskUserQuestion:
@@ -528,19 +516,6 @@ Does this capture what you're building? (yes / adjust)
 
 If "adjust": Return to scoping.
 
-**Commit requirements:**
-
-```bash
-git add .planning/REQUIREMENTS.md
-git commit -m "$(cat <<'EOF'
-docs: define v[X.Y] requirements
-
-[X] requirements across [N] categories
-[Y] requirements deferred to v2
-EOF
-)"
-```
-
 ## Phase 8: Create Roadmap
 
 Display stage banner:
@@ -615,33 +590,16 @@ Use AskUserQuestion:
 - header: "Roadmap"
 - question: "Does this roadmap structure work for you?"
 - options:
-  - "Approve" — Commit and continue
+  - "Approve" — Finalize and continue
   - "Adjust phases" — Tell me what to change
   - "Review full file" — Show raw ROADMAP.md
 
-**If "Approve":** Continue to commit.
+**If "Approve":** Continue to completion.
 
 **If "Adjust phases":**
 - Get user's adjustment notes
 - Re-spawn roadmapper with revision context
 - Loop until approved
-
-**Commit roadmap:**
-
-```bash
-git add .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
-git commit -m "$(cat <<'EOF'
-docs: create v[X.Y] roadmap ([N] phases)
-
-Phases:
-1. [phase-name]: [requirements covered]
-2. [phase-name]: [requirements covered]
-...
-
-All v1 requirements mapped to phases.
-EOF
-)"
-```
 
 ## Phase 9: Done
 
@@ -704,14 +662,16 @@ Present completion with next steps:
 - [ ] Previous milestone context presented
 - [ ] Deep questioning completed (threads followed)
 - [ ] Milestone version determined
-- [ ] PROJECT.md updated with new milestone goals → **committed**
-- [ ] Research completed (if selected) → **committed**
+- [ ] PROJECT.md updated with new milestone goals
+- [ ] Research completed (if selected)
 - [ ] Requirements gathered and scoped
-- [ ] REQUIREMENTS.md created with REQ-IDs → **committed**
+- [ ] REQUIREMENTS.md created with REQ-IDs
 - [ ] gsd-roadmapper spawned with context
 - [ ] Roadmap files written immediately
 - [ ] User feedback incorporated (if any)
-- [ ] ROADMAP.md, STATE.md → **committed**
+- [ ] ROADMAP.md, STATE.md written
 - [ ] User knows next step is `/gsd:plan-phase [N]`
+
+Note: `.planning/` files are not committed — they stay local.
 
 </success_criteria>

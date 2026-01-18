@@ -524,19 +524,7 @@ Write to: `${PHASE_DIR}/${PADDED_PHASE}-RESEARCH.md`
 
 Where `PHASE_DIR` is the full path (e.g., `.planning/phases/01-foundation`)
 
-## Step 6: Commit Research
-
-```bash
-git add "${PHASE_DIR}/${PADDED_PHASE}-RESEARCH.md"
-git commit -m "docs(${PHASE}): research phase domain
-
-Phase ${PHASE}: ${PHASE_NAME}
-- Standard stack identified
-- Architecture patterns documented
-- Pitfalls catalogued"
-```
-
-## Step 7: Return Structured Result
+## Step 6: Return Structured Result
 
 Return to orchestrator with structured result.
 

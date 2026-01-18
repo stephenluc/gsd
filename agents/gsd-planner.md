@@ -951,14 +951,7 @@ After making edits, self-check:
 - [ ] Dependencies still correct
 - [ ] Files on disk updated (use Write tool)
 
-### Step 6: Commit Revised Plans
-
-```bash
-git add .planning/phases/${PHASE}-*/${PHASE}-*-PLAN.md
-git commit -m "fix(${PHASE}): revise plans based on checker feedback"
-```
-
-### Step 7: Return Revision Summary
+### Step 6: Return Revision Summary
 
 ```markdown
 ## REVISION COMPLETE
@@ -1570,20 +1563,6 @@ Update ROADMAP.md to finalize phase placeholders created by add-phase or insert-
   ```
 
 4. Write updated ROADMAP.md
-</step>
-
-<step name="git_commit">
-Commit phase plan(s) and updated roadmap:
-
-```bash
-git add .planning/phases/${PHASE}-*/${PHASE}-*-PLAN.md .planning/ROADMAP.md
-git commit -m "docs(${PHASE}): create phase plan
-
-Phase ${PHASE}: ${PHASE_NAME}
-- [N] plan(s) in [M] wave(s)
-- [X] parallel, [Y] sequential
-- Ready for execution"
-```
 </step>
 
 <step name="offer_next">

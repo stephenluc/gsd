@@ -121,28 +121,7 @@ Use template: ~/.claude/get-shit-done/templates/research-project/SUMMARY.md
 
 Write to `.planning/research/SUMMARY.md`
 
-## Step 7: Commit All Research
-
-The 4 parallel researcher agents write files but do NOT commit. You commit everything together.
-
-```bash
-git add .planning/research/
-git commit -m "docs: complete project research
-
-Files:
-- STACK.md
-- FEATURES.md
-- ARCHITECTURE.md
-- PITFALLS.md
-- SUMMARY.md
-
-Key findings:
-- Stack: [one-liner]
-- Architecture: [one-liner]
-- Critical pitfall: [one-liner]"
-```
-
-## Step 8: Return Summary
+## Step 7: Return Summary
 
 Return brief confirmation with key points for the orchestrator.
 

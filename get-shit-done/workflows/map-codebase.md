@@ -205,29 +205,6 @@ wc -l .planning/codebase/*.md
 
 If any documents missing or empty, note which agents may have failed.
 
-Continue to commit_codebase_map.
-</step>
-
-<step name="commit_codebase_map">
-Commit the codebase map:
-
-```bash
-git add .planning/codebase/*.md
-git commit -m "$(cat <<'EOF'
-docs: map existing codebase
-
-- STACK.md - Technologies and dependencies
-- ARCHITECTURE.md - System design and patterns
-- STRUCTURE.md - Directory layout
-- CONVENTIONS.md - Code style and patterns
-- TESTING.md - Test structure
-- INTEGRATIONS.md - External services
-- CONCERNS.md - Technical debt and issues
-EOF
-)"
-```
-
-Continue to offer_next.
 </step>
 
 <step name="offer_next">

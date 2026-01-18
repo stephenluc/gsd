@@ -1505,77 +1505,6 @@ ROADMAP_FILE=".planning/ROADMAP.md"
 - Add completion date
 </step>
 
-<step name="git_commit_metadata">
-Commit execution metadata (SUMMARY + STATE + ROADMAP):
-
-**Note:** All task code has already been committed during execution (one commit per task).
-PLAN.md was already committed during plan-phase. This final commit captures execution results only.
-
-**1. Stage execution artifacts:**
-
-```bash
-git add .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-git add .planning/STATE.md
-```
-
-**2. Stage roadmap:**
-
-```bash
-git add .planning/ROADMAP.md
-```
-
-**3. Verify staging:**
-
-```bash
-git status
-# Should show only execution artifacts (SUMMARY, STATE, ROADMAP), no code files
-```
-
-**4. Commit metadata:**
-
-```bash
-git commit -m "$(cat <<'EOF'
-docs({phase}-{plan}): complete [plan-name] plan
-
-Tasks completed: [N]/[N]
-- [Task 1 name]
-- [Task 2 name]
-- [Task 3 name]
-
-SUMMARY: .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md
-EOF
-)"
-```
-
-**Example:**
-
-```bash
-git commit -m "$(cat <<'EOF'
-docs(08-02): complete user registration plan
-
-Tasks completed: 3/3
-- User registration endpoint
-- Password hashing with bcrypt
-- Email confirmation flow
-
-SUMMARY: .planning/phases/08-user-auth/08-02-registration-SUMMARY.md
-EOF
-)"
-```
-
-**Git log after plan execution:**
-
-```
-abc123f docs(08-02): complete user registration plan
-def456g feat(08-02): add email confirmation flow
-hij789k feat(08-02): implement password hashing with bcrypt
-lmn012o feat(08-02): create user registration endpoint
-```
-
-Each task has its own commit, followed by one metadata commit documenting plan completion.
-
-For commit message conventions, see ~/.claude/get-shit-done/references/git-integration.md
-</step>
 
 <step name="update_codebase_map">
 **If .planning/codebase/ exists:**
@@ -1608,11 +1537,6 @@ git diff --name-only ${FIRST_TASK}^..HEAD 2>/dev/null
 
 **Update format:**
 Make single targeted edits - add a bullet point, update a path, or remove a stale entry. Don't rewrite sections.
-
-```bash
-git add .planning/codebase/*.md
-git commit --amend --no-edit  # Include in metadata commit
-```
 
 **If .planning/codebase/ doesn't exist:**
 Skip this step.

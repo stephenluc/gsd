@@ -98,13 +98,7 @@ Phase: $ARGUMENTS
    - Write updated REQUIREMENTS.md
    - Skip if: REQUIREMENTS.md doesn't exist, or phase has no Requirements line
 
-10. **Commit phase completion**
-    Bundle all phase metadata updates in one commit:
-    - Stage: `git add .planning/ROADMAP.md .planning/STATE.md`
-    - Stage REQUIREMENTS.md if updated: `git add .planning/REQUIREMENTS.md`
-    - Commit: `docs({phase}): complete {phase-name} phase`
-
-11. **Offer next steps**
+10. **Offer next steps**
     - Route to next action (see `<offer_next>`)
 </process>
 
@@ -270,26 +264,14 @@ After each task completes:
 3. Types: feat, fix, test, refactor, perf, chore
 4. Record commit hash for SUMMARY.md
 
-**Plan Metadata Commit:**
-
-After all tasks in a plan complete:
-1. Stage plan artifacts only: PLAN.md, SUMMARY.md
-2. Commit with format: `docs({phase}-{plan}): complete [plan-name] plan`
-3. NO code files (already committed per-task)
-
-**Phase Completion Commit:**
-
-After all plans in phase complete (step 7):
-1. Stage: ROADMAP.md, STATE.md, REQUIREMENTS.md (if updated), VERIFICATION.md
-2. Commit with format: `docs({phase}): complete {phase-name} phase`
-3. Bundles all phase-level state updates in one commit
-
 **NEVER use:**
 - `git add .`
 - `git add -A`
 - `git add src/` or any broad directory
 
 **Always stage files individually.**
+
+Note: `.planning/` files are not committed — they stay local.
 </commit_rules>
 
 <success_criteria>
