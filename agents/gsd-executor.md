@@ -41,6 +41,23 @@ Options:
 **If .planning/ doesn't exist:** Error - project not initialized.
 </step>
 
+<step name="run_safety_checks">
+Run safety checks once per plan execution (not per task).
+
+This step references the `<safety_checks>` section for detailed protocol.
+
+**Checks performed in order:**
+
+1. **Version control mode detection** - Determines if Graphite mode is active
+2. **Branch verification** - Confirms on expected branch for this phase
+   - If wrong branch + clean working directory: Auto-switch
+   - If wrong branch + dirty working directory: STOP execution
+   - If expected branch doesn't exist: Create it
+3. **Sync status check** - Warns if branch is behind remote (warn only, continue execution)
+
+**Note:** Git write command warnings are NOT checked here. Those happen during execute_tasks when bash commands are actually run. See `<safety_checks>` section 4 for that protocol.
+</step>
+
 <step name="load_plan">
 Read the plan file provided in your prompt context.
 
@@ -119,6 +136,8 @@ Execute each task in the plan.
 
    Note: Commits happen when work is logically complete, which may be mid-task, after a task, or after multiple tasks. The key question is "would this make sense as a standalone commit?"
 
+   **Git write command checking (Graphite mode only):** Before running any bash command, check if it matches a git write pattern (commit, push, rebase, merge, reset, cherry-pick, revert, checkout -b, branch -dDmMcC). If match found and VC_TYPE is "graphite", show warning but proceed. See `<safety_checks>` section 4 for pattern and format.
+
 3. **If `type="checkpoint:*"`:**
 
    - STOP immediately (do not continue to next task)
@@ -131,6 +150,120 @@ Execute each task in the plan.
    </step>
 
 </execution_flow>
+
+<safety_checks>
+## Safety Checks Protocol
+
+Run these checks at plan execution start (once per plan, not per task).
+
+### 1. Version Control Mode Detection
+
+```bash
+VC_TYPE=$(cat .planning/config.json 2>/dev/null | \
+  grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | \
+  cut -d'"' -f4)
+VC_TYPE=${VC_TYPE:-git}
+```
+
+This determines whether Graphite-specific warnings apply.
+
+### 2. Branch Verification
+
+Verify the executor is on the correct branch for this phase.
+
+```bash
+# Get phase number from plan frontmatter or STATE.md
+PHASE_NUM=$(grep "^phase:" [plan-path] | cut -d':' -f2 | tr -d ' ' | cut -d'-' -f1)
+
+# Get expected branch from STATE.md Branch Mappings table
+EXPECTED_BRANCH=$(grep "^| ${PHASE_NUM} |" .planning/STATE.md 2>/dev/null | \
+  awk -F'|' '{print $3}' | xargs)
+
+# Get current branch
+CURRENT_BRANCH=$(git branch --show-current)
+```
+
+**If expected branch is known and differs from current:**
+
+```bash
+if [ -n "$EXPECTED_BRANCH" ] && [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+  echo "Wrong branch. Expected: ${EXPECTED_BRANCH}, Current: ${CURRENT_BRANCH}"
+
+  # Check for uncommitted changes before auto-switch
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "Cannot auto-switch: uncommitted changes present."
+    echo "Commit or stash changes first, then retry."
+    # STOP execution here - do not proceed
+  else
+    echo "Auto-switching to ${EXPECTED_BRANCH}..."
+    if [ "$VC_TYPE" = "graphite" ]; then
+      gt checkout "${EXPECTED_BRANCH}"
+    else
+      git checkout "${EXPECTED_BRANCH}"
+    fi
+  fi
+fi
+```
+
+**If expected branch does not exist:**
+
+```bash
+if [ -n "$EXPECTED_BRANCH" ] && ! git show-ref --verify --quiet "refs/heads/${EXPECTED_BRANCH}"; then
+  echo "Expected branch ${EXPECTED_BRANCH} does not exist. Creating..."
+
+  if [ "$VC_TYPE" = "graphite" ]; then
+    gt create "${EXPECTED_BRANCH}"
+  else
+    git checkout -b "${EXPECTED_BRANCH}"
+  fi
+fi
+```
+
+### 3. Sync Status Check
+
+Check if branch is behind remote to warn about stale state.
+
+```bash
+git fetch origin 2>/dev/null
+CURRENT_BRANCH=$(git branch --show-current)
+BEHIND=$(git rev-list --count HEAD..origin/${CURRENT_BRANCH} 2>/dev/null || echo "0")
+
+if [ "$BEHIND" -gt 0 ]; then
+  echo "Branch is stale: ${BEHIND} commits behind origin/${CURRENT_BRANCH}."
+  if [ "$VC_TYPE" = "graphite" ]; then
+    echo "Run 'gt sync' to update."
+  else
+    echo "Run 'git pull' to update."
+  fi
+  # Continue execution (warning only)
+fi
+```
+
+This runs once at plan start, not before each commit.
+
+### 4. Git Write Command Warning Protocol
+
+During task execution (in execute_tasks step), before running bash commands in Graphite mode:
+
+**Git write operation detection pattern:**
+
+```bash
+GIT_WRITE_PATTERN="git[[:space:]]+(commit|push|rebase|merge|reset|cherry-pick|revert|checkout[[:space:]]+-b|branch[[:space:]]+-[dDmMcC])"
+```
+
+**Read-only commands (pass silently):** git status, git log, git diff, git show, git branch (list only), git fetch, git remote, git rev-parse, git rev-list
+
+**If command matches write pattern AND VC_TYPE is "graphite":**
+
+```
+Warning: Git write operation in Graphite mode: "{command}"
+This may corrupt stack metadata. Proceeding anyway.
+```
+
+Then proceed with the command. Do NOT block execution.
+
+This check applies during execute_tasks, not at plan start.
+</safety_checks>
 
 <deviation_rules>
 **While executing tasks, you WILL discover work not in the plan.** This is normal.
