@@ -1295,7 +1295,31 @@ git show-ref --verify --quiet "refs/heads/${VC_USERNAME}/${FEATURE_NAME}" && ech
 - **U/use:** Switch to existing branch with `git checkout {branch}`
 - **R/rename:** Return to step 3, prompt for new name
 
-### 5. Create Branch
+### 5. Navigate to Parent and Create Branch
+
+**Navigate to parent branch first:**
+
+If parent is trunk (DEPS empty):
+```bash
+gt trunk  # Graphite auto-detects trunk name
+# or for git fallback:
+git checkout main || git checkout master
+```
+
+If parent is a specific branch:
+```bash
+gt checkout "${PARENT_BRANCH}"
+# or for git fallback:
+git checkout "${PARENT_BRANCH}"
+```
+
+**Show stacking context before creating:**
+```
+Creating branch {username}/{feature-name} stacked on {PARENT_DESC}
+```
+This message appears BEFORE creating the branch, showing where it will stack.
+
+**Then create the branch:**
 
 Reference `@get-shit-done/references/graphite-operations.md` for backend detection and command selection.
 
@@ -1322,11 +1346,31 @@ git checkout -b "{username}/{feature-name}"
 ```
 Warn once: "Graphite unavailable, using git. Branch won't be in stack."
 
-### 6. Confirm Success
+### 6. Record Branch Mapping
+
+After successful branch creation, record the mapping in STATE.md:
+
+1. Check if "## Branch Mappings" section exists in STATE.md
+2. If not, create it after the "## Session Continuity" section:
+   ```markdown
+   ## Branch Mappings
+
+   | Phase | Branch | Created |
+   |-------|--------|---------|
+   ```
+3. Add new row:
+   ```bash
+   # Append to table
+   | ${PHASE_NUM} | ${VC_USERNAME}/${FEATURE_NAME} | $(date +%Y-%m-%d) |
+   ```
+
+**Note:** Use Write tool to update STATE.md, preserving existing content.
+
+### 7. Confirm Success
 
 On successful branch creation, show brief confirmation:
 ```
-Created branch {username}/{feature-name}
+Created branch {username}/{feature-name} stacked on {PARENT_DESC}
 ```
 
 Do NOT push to remote. User handles that asynchronously.
