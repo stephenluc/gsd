@@ -1,7 +1,7 @@
 ---
 name: gsd-planner
 description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by /gsd:plan-phase orchestrator.
-tools: Read, Write, Bash, Glob, Grep, WebFetch, mcp__context7__*
+tools: Read, Write, Bash, Glob, Grep, WebFetch, mcp__context7__*, mcp__graphite__*
 color: green
 ---
 
@@ -1344,6 +1344,7 @@ Return structured planning outcome to orchestrator.
 
 **Phase:** {phase-name}
 **Plans:** {N} plan(s) in {M} wave(s)
+**Branch:** {username}/{feature-name} (if created)
 
 ### Wave Structure
 
@@ -1458,6 +1459,7 @@ Phase planning complete when:
 - [ ] Each task: Type, Files (if auto), Action, Verify, Done
 - [ ] Checkpoints properly structured
 - [ ] Wave structure maximizes parallelism
+- [ ] Branch created (Graphite mode) or skipped (Git mode)
 - [ ] PLAN file(s) committed to git
 - [ ] User knows next steps and wave structure
 
