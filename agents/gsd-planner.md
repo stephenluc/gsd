@@ -1242,6 +1242,165 @@ Depends on: Phase 3, Phase 5
 Stacking on Phase 5 branch (highest-numbered dependency)
 ```
 
+### 1.7. Show Stack Preview
+
+**Only execute in Graphite mode** (skip this step if VC_TYPE is "git" or unset).
+
+Before creating the branch, show the user a visual preview of how this branch will fit into the stack structure.
+
+**1. Build stack tree data:**
+
+a) Parse all phases from ROADMAP.md:
+```bash
+# Extract phase numbers, names, dependencies, and status
+grep -E "^### Phase [0-9]+:" .planning/ROADMAP.md
+grep -E "^\*\*Status:\*\*" .planning/ROADMAP.md
+grep -E "^\*\*Depends on:\*\*" .planning/ROADMAP.md
+```
+
+For each phase, extract:
+- Phase number (N)
+- Phase name
+- Dependencies (list of phase numbers, or empty for independent)
+- Status (Complete/Pending/In Progress)
+
+b) Read branch mappings from STATE.md:
+```bash
+# Extract phase-to-branch mappings
+grep -E "^\| [0-9]+ \|" .planning/STATE.md | grep "Branch Mappings" -A 100
+```
+
+c) Get current context:
+```bash
+# Current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Trunk name
+TRUNK=$(gt trunk 2>/dev/null || echo "main")
+```
+
+**2. Build tree structure:**
+
+Using the dependency graph, build a tree where:
+- Root = trunk branch (main/master)
+- Children of trunk = phases with "Depends on: None"
+- Children of phase N = phases where highest dependency is N
+
+```
+Algorithm:
+1. Create root node for trunk
+2. For each phase with no dependencies, add as child of trunk
+3. For each phase with dependencies, find its parent (highest-numbered dependency)
+4. Add as child of that parent phase
+5. Mark the phase being created with "<- NEW" indicator
+```
+
+**3. Render ASCII tree:**
+
+Use Unicode box-drawing characters for professional appearance:
+
+```
+main
+├── P1: stephen/config-foundation (Configuration Foundation) ✓
+│   └── P2: stephen/mcp-layer (MCP Abstraction Layer) ✓
+│       └── P3: stephen/branch-mgmt (Basic Branch Management) ✓
+│           ├── P4: stephen/stacking (Intelligent Branch Stacking) ✓
+│           │   └── P5: stephen/stack-viz <- NEW
+│           └── P6: (planned) Basic Commit Operations ○
+```
+
+**Tree characters:**
+- `├── ` branch with siblings below
+- `└── ` last branch at this level
+- `│   ` vertical connector for nested items
+- `    ` (4 spaces) indent without connector
+
+**Status indicators:**
+- `✓` for Complete phases
+- `▶` for In Progress (current branch, before creating new)
+- `○` for Pending phases
+- `<- NEW` marker for the branch about to be created
+
+**Format each phase line as:**
+`P{N}: {branch-name-or-planned} ({Phase Name}) {status}`
+
+Where `{branch-name-or-planned}` is:
+- The actual branch name from STATE.md Branch Mappings if exists
+- `(planned)` if no branch mapping exists yet
+
+**4. Handle collapsed view for large stacks (>8 phases):**
+
+If total phases > 8, show a windowed view:
+- Show trunk
+- Show 2 phases before current phase
+- Show current phase
+- Show 2 phases after current phase
+- Show ellipsis markers for collapsed sections
+
+```
+main
+├── ... (3 earlier phases)
+├── P4: stephen/stacking (Intelligent Branch Stacking) ✓
+│   └── P5: stephen/stack-viz <- NEW
+└── ... (3 more phases)
+
+[8 total branches - expand with --full]
+```
+
+**5. Display stack preview banner:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD > STACK PREVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[tree output from step 3 or 4]
+
+Creating: {username}/{feature-name}
+Stacked on: {PARENT_DESC}
+
+Proceed with branch creation? [Y/n]
+```
+
+The preview is informational - the existing confirmation prompt at the end handles user approval.
+
+**6. Tree rendering algorithm (recursive):**
+
+```
+render_node(node, prefix, is_last):
+  # Build connector
+  connector = "└── " if is_last else "├── "
+
+  # Build this node's line
+  if node.is_trunk:
+    line = node.name  # Just "main" or "master"
+  else:
+    branch_part = node.branch if node.branch else "(planned)"
+    if node.is_new:
+      status = "<- NEW"
+    elif node.status == "Complete":
+      status = "✓"
+    elif node.is_current:
+      status = "▶"
+    else:
+      status = "○"
+    line = prefix + connector + f"P{node.num}: {branch_part} ({node.name}) {status}"
+
+  output = [line]
+
+  # Build prefix for children
+  child_prefix = prefix + ("    " if is_last else "│   ")
+
+  # Render children recursively
+  for i, child in enumerate(node.children):
+    is_child_last = (i == len(node.children) - 1)
+    output.extend(render_node(child, child_prefix, is_child_last))
+
+  return output
+```
+
+**Continue to Step 2 after showing preview.**
+
 ### 2. Check for Uncommitted Changes
 
 Before creating a branch, verify clean working tree:
