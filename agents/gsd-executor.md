@@ -530,12 +530,16 @@ After each task completes (verification passed, done criteria met), commit immed
 git status --short
 ```
 
-**2. Stage only task-related files:**
-Stage each file individually (NEVER use `git add .` or `git add -A`):
+**2. Stage and commit based on version control mode:**
+
+First, check version control mode (lazy detection - only on first commit):
 
 ```bash
-git add src/api/auth.ts
-git add src/types/user.ts
+# Read version control type from config (if not already known this session)
+VC_TYPE=$(cat .planning/config.json 2>/dev/null | \
+  grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' | \
+  cut -d'"' -f4)
+VC_TYPE=${VC_TYPE:-git}  # Default to git if not set
 ```
 
 **3. Determine commit type:**
@@ -555,22 +559,51 @@ git add src/types/user.ts
 
 Format: `{type}({phase}-{plan}): {task-name-or-description}`
 
+**5. Execute commit based on mode:**
+
+**If Graphite mode (`VC_TYPE` is "graphite"):**
+
+Use `gt modify -cam` which stages all changes and creates a new commit:
+
+```bash
+gt modify -cam "{type}({phase}-{plan}): {concise task description}
+
+- {key change 1}
+- {key change 2}
+"
+```
+
+If `gt` command fails, fall back to git with a warning:
+> Graphite CLI failed. Falling back to git commit.
+
+Then use the git approach below.
+
+**If Git mode (or fallback):**
+
+Stage each file individually (NEVER use `git add .` or `git add -A`):
+
+```bash
+git add src/api/auth.ts
+git add src/types/user.ts
+```
+
+Then commit:
+
 ```bash
 git commit -m "{type}({phase}-{plan}): {concise task description}
 
 - {key change 1}
 - {key change 2}
-- {key change 3}
 "
 ```
 
-**5. Record commit hash:**
+**6. Record commit hash:**
 
 ```bash
 TASK_COMMIT=$(git rev-parse --short HEAD)
 ```
 
-Track for SUMMARY.md generation.
+Track for SUMMARY.md generation. This works for both Graphite and Git commits.
 
 **Atomic commit benefits:**
 
